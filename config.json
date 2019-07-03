@@ -1,0 +1,10 @@
+{
+    "infuraApikey": "ede61953adb34beeb5106a2c0c61f200",
+    "network": "ropsten",
+    "linkTokenRopstenAddress": "0x20fE562d797A42Dcb3399062AE9546cd06f63280",
+    "oracleRopstenAddress": "0xc99B3D447826532722E41bc36e644ba3479E4365",
+    "myContractRopstenAddress": "0xaBB4d39c88cde2915Bb84776b8C49D547C1400B7",
+    "deployerPrivateKey": "9C854BD14857DD1F107ECB94E1AEEAA8E9538E3DC41D082D5FE0E452E87A2F28",
+    "etherscanApiKey": "IZXGYBPDM1VZNQWVIAHE5EZD8MI2GWEZ9X",
+    "deployAndVerify": false
+}

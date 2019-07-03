@@ -1,86 +1,69 @@
 const etherlime = require('etherlime-lib');
-const LimeFactory = require('../build/LimeFactory.json');
+const MyContract = require('../build/MyContract.json');
+const LinkToken = require('../build/LinkToken.json');
+const Oracle = require('../build/Oracle.json');
+const ethers = require('ethers')
+const chainHelper = require("chainlink-test-helpers");
+const config = require('../config.json')
 
+const ONE_ETH = '1000000000000000000'
 
-describe('Example', () => {
+describe('Example for local deployment and usage', () => {
     let aliceAccount = accounts[3];
     let deployer;
-    let limeFactoryInstance;
+    let myContractInstance;
+    let linkToken;
+    let oracle;
+    let request;
 
     before(async () => {
         deployer = new etherlime.EtherlimeGanacheDeployer(aliceAccount.secretKey);
-        limeFactoryInstance = await deployer.deploy(LimeFactory);
+        linkToken = await deployer.deploy(LinkToken)
+        oracle = await deployer.deploy(Oracle, {}, linkToken.contractAddress)
+        myContractInstance = await deployer.deploy(MyContract, {}, linkToken.contractAddress, oracle.contractAddress);
+        let tx = await linkToken.transfer(myContractInstance.contractAddress, ONE_ETH)
+        await linkToken.verboseWaitForTransaction(tx)
     });
 
-    it('should have valid deployer private key', async () => {
-        assert.strictEqual(deployer.signer.privateKey, aliceAccount.secretKey);
-    });
-
-    it('should be valid private key', async () => {
-        assert.isPrivateKey(aliceAccount.secretKey);
-    });
-
-    it('should be valid address', async () => {
-        assert.isAddress(limeFactoryInstance.contractAddress, "The contract was not deployed");
+    it('should send request to the market', async () => {
+        let expectedEvent = 'ChainlinkRequested'
+        let jobID = ethers.utils.hexlify(ethers.utils.toUtf8Bytes('3fcbda4c30d94f9197fe75bd534f6543'));
+		let coin = 'ETH'
+		let market = 'USD'
+        let tx = await myContractInstance.requestCoinMarketCapPrice(oracle.contractAddress, jobID, coin, market)
+        let result = await myContractInstance.verboseWaitForTransaction(tx)
+        request = chainHelper.decodeRunRequest(result.events[3])
+        assert.equal(oracle.contractAddress, result.events[3].address)
+        assert.equal(expectedEvent, result.events[0].event)
     })
 
-    it('should be valid hash', async () => {
-        let hash = '0x5024924b629bbc6a32e3010ad738989f3fb2adf2b2c06f0cceeb17f6da6641b3';
-        assert.isHash(hash)
-    })
-
-
-    it('should create lime', async () => {
-        const createTransaction = await limeFactoryInstance.createLime("newLime", 6, 8, 2);
-        let lime = await limeFactoryInstance.limes(0);
-        assert.equal(lime.name, 'newLime', '"newLime" was not created');
-    });
-
-    it('should revert if try to create lime with 0 carbohydrates', async () => {
-        let carbohydrates = 0;
-        await assert.revert(limeFactoryInstance.createLime("newLime2", carbohydrates, 8, 2), "Carbohydrates are not set to 0");
-    });
-
-    it('should assert that function not revert and is executed successfully', async () => {
-        await assert.notRevert(limeFactoryInstance.createLime("newLime3", 6, 8, 2))
-    })
-
-    it('should create lime from another account', async () => {
-        let bobsAccount = accounts[4].signer;
-        const transaction = await limeFactoryInstance.from(bobsAccount /* Could be address or just index in accounts like 4 */).createLime("newLime3", 6, 8, 2);
-        // check sender
-        assert.equal(transaction.from, bobsAccount.address, "The account that created lime was not bobs");
-
-        //check created lime
-        let lime = await limeFactoryInstance.limes(1);
-        assert.equal(lime.name, 'newLime3', '"newLime3" was not created');
-    })
-
-    it('should emit event', async () => {
-        let expectedEvent = "FreshLime"
-        await assert.emit(limeFactoryInstance.createLime("newLime", 6, 8, 2), expectedEvent)
-    })
-
-    it('should emit event with certain arguments', async () => {
-        await assert.emitWithArgs(limeFactoryInstance.createLime("newLime", 6, 8, 2), ["newLime"])
-    })
-
-    it('should change balance on ethers sent', async () => {
-        let bobsAccount = accounts[4].signer
-        await assert.balanceChanged(bobsAccount.sendTransaction({
-            to: aliceAccount.signer.address,
-            value: 200
-        }), bobsAccount, '-200')
-    })
-
-    it('should change multiple balances on ethers sent', async () => {
-        let sender = accounts[1].signer
-        let receiver = accounts[2].signer
-
-        await assert.balancesChanged(sender.sendTransaction({
-                    to: receiver.address,
-                    value: 200
-                }), [sender, receiver], ['-200', 200])
+    it('should receive value from request', async () => {
+        let price = '50000'
+        let priceToSend = ethers.utils.formatBytes32String(price)
+        await chainHelper.fulfillOracleRequest(oracle, request, priceToSend, {gasLimit: 900000})
+        let currentPrice = await myContractInstance.currentPrice()
+        assert.equal(price, ethers.utils.parseBytes32String(currentPrice))
     })
 
 });
+
+describe('Example for Ropsten network usage with already deployed contract', () => {
+   
+    before(async () => {
+        deployer = new etherlime.InfuraPrivateKeyDeployer(config.deployerPrivateKey, config.network, config.infuraApikey);
+        myContractInstance = await deployer.wrapDeployedContract(MyContract, config.myContractRopstenAddress);
+    });
+
+    it('should send request to the market and receive actual ETH value in USD', async function () {
+        this.timeout(5000)
+        let jobID = ethers.utils.hexlify(ethers.utils.toUtf8Bytes('3fcbda4c30d94f9197fe75bd534f6543'));
+		let coin = 'ETH'
+		let market = 'USD'
+        
+        await myContractInstance.requestCoinMarketCapPrice(config.oracleRopstenAddress, jobID, coin, market);
+        let currentPrice = await myContractInstance.currentPrice();
+        
+        assert(currentPrice.toNumber() > 0)
+    })
+})
+
