@@ -1,13 +1,17 @@
 const etherlime = require('etherlime-lib');
-const LimeFactory = require('../build/LimeFactory.json');
-
+const MyContract = require('../build/MyContract.json');
+const LinkToken = require('../build/LinkToken.json');
+const Oracle = require('../build/Oracle.json');
 
 const deploy = async (network, secret, etherscanApiKey) => {
 
-	const deployer = new etherlime.EtherlimeGanacheDeployer();
-	const result = await deployer.deploy(LimeFactory);
+	let deployer = new etherlime.EtherlimeGanacheDeployer();
+	let linkToken = await deployer.deploy(LinkToken);
+	let oracle = await deployer.deploy(Oracle, {}, linkToken.contractAddress);
+	let contract = await deployer.deploy(MyContract, {}, linkToken.contractAddress, oracle.contractAddress);
 
 };
+
 
 module.exports = {
 	deploy
