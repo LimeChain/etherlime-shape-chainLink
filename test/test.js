@@ -4,7 +4,6 @@ const LinkToken = require('../build/LinkToken.json');
 const Oracle = require('../build/Oracle.json');
 const ethers = require('ethers')
 const chainHelper = require("chainlink-test-helpers");
-const config = require('../config.json')
 
 const ONE_ETH = '1000000000000000000'
 
@@ -48,10 +47,16 @@ describe('Example for local deployment and usage', () => {
 });
 
 describe('Example for Ropsten network usage with already deployed contract', () => {
-   
+
+    const deployerPrivateKey = ''; // put your private key here
+    const network = 'ropsten';
+    const infuraApikey = 'ede61953adb34beeb5106a2c0c61f200';
+    const myContractRopstenAddress = '0xaBB4d39c88cde2915Bb84776b8C49D547C1400B7'; // the address of the already deployed chainlink contract
+    const oracleRopstenAddress = '0xc99B3D447826532722E41bc36e644ba3479E4365'; // the address of the Oracle contract on Ropsten
+
     before(async () => {
-        deployer = new etherlime.InfuraPrivateKeyDeployer(config.deployerPrivateKey, config.network, config.infuraApikey);
-        myContractInstance = await deployer.wrapDeployedContract(MyContract, config.myContractRopstenAddress);
+        deployer = new etherlime.InfuraPrivateKeyDeployer(deployerPrivateKey, network, infuraApikey);
+        myContractInstance = await deployer.wrapDeployedContract(MyContract, myContractRopstenAddress);
     });
 
     it('should send request to the market and receive actual ETH value in USD', async function () {
@@ -60,7 +65,7 @@ describe('Example for Ropsten network usage with already deployed contract', () 
 		let coin = 'ETH'
 		let market = 'USD'
         
-        await myContractInstance.requestCoinMarketCapPrice(config.oracleRopstenAddress, jobID, coin, market);
+        await myContractInstance.requestCoinMarketCapPrice(oracleRopstenAddress, jobID, coin, market);
         let currentPrice = await myContractInstance.currentPrice();
         
         assert(currentPrice.toNumber() > 0)

@@ -1,23 +1,16 @@
 const etherlime = require('etherlime-lib');
 const MyContract = require('../build/MyContract.json');
-const config = require('../config.json');
+
+const linkTokenRopstenAddress = '0x20fE562d797A42Dcb3399062AE9546cd06f63280';
+const oracleRopstenAddress = '0xc99B3D447826532722E41bc36e644ba3479E4365';
+const infuraApikey = 'ede61953adb34beeb5106a2c0c61f200';
 
 const deploy = async (network, secret, etherscanApiKey) => {
 
-	let deployer;
-	let contract;
-
-	if (!config.deployAndVerify) {
-		// example for deploying on Ropsten
-		deployer = new etherlime.InfuraPrivateKeyDeployer(config.deployerPrivateKey, config.network, config.infuraApikey);
-		contract = await deployer.deploy(MyContract, {}, config.linkTokenRopstenAddress, config.oracleRopstenAddress);
-		
-	} else {
-		// example for deploy (on Ropsten) and verify; To run it, change deployAndVerify in config.json to "true"
-		deployer = new etherlime.InfuraPrivateKeyDeployer(config.deployerPrivateKey, config.network, config.infuraApikey);
-		deployer.setVerifierApiKey(config.etherscanApiKey);
-		contract = await deployer.deployAndVerify(MyContract, {}, config.linkTokenRopstenAddress, config.oracleRopstenAddress);
-	}
+	// this script will deploy and verify MyContract
+	let deployer = new etherlime.InfuraPrivateKeyDeployer(secret, network, infuraApikey);
+	deployer.setVerifierApiKey(etherscanApiKey);
+	let contract = await deployer.deployAndVerify(MyContract, {}, linkTokenRopstenAddress, oracleRopstenAddress);
 
 };
 

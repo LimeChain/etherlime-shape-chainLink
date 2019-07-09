@@ -27,21 +27,20 @@ With the command `npm run deployment` your smart contract will be deployed on yo
 
 
 #### Test net deployment
-The provided scripts for test net are set to deploy on Ropsten. To run it use the following command:
+The provided scripts for test net are set to deploy the smart contract on Ropsten and to verify it. To run it you must pass your secret key as a param within the following command:
 
 ```
-    npm run deployRopsten
+    npm run deployRopsten 'yourPrivateKeyGoesHere'
 ```
 
 Remember that if you want to send requests from the newly deployed contract, you must first fulfill it with LINK token. Use Chainlink Faucet for Ropsten testnet: https://ropsten.chain.link/.
 
-You have also the availability to verify you smart contract within the deployment. To to do it, just go to config.json file and set "deployAndVerify" property to `true` and then run `npm run deployRopsten` again.
-
 
 # 4.Run tests
 Etherlime Chainlink project includes tests.
+
 ```
     npm run test
 ```
 
-The provided tests shows examples for local usage of the contract. Also is given an example with already deployed on Ropsten contract that is fulfilled with Link tokens in order to create requests.
+The provided tests shows examples for local usage of the contract. Also is given an example with already deployed on Ropsten contract that is fulfilled with Link tokens in order to create requests. You must fill your private key in the example.

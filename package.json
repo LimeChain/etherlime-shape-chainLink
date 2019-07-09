@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "etherlime compile --solcVersion 0.4.24",
     "deploy": "etherlime deploy --compile false",
-    "deployRopsten" : "etherlime deploy --file deployment/deploy-ropsten.js --compile false",
+    "deployRopsten" : "etherlime deploy --file deployment/deploy-ropsten.js --network 'ropsten' --etherscanApiKey 'IZXGYBPDM1VZNQWVIAHE5EZD8MI2GWEZ9X' --compile false --secret",
     "test": "etherlime test --solcVersion 0.4.24"
   },
   "author": "",
