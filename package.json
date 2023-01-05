@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chainlink": "^0.6.4",
+    "chainlink": "^0.8.2",
     "chainlink-test-helpers": "^0.6.0-5",
     "etherlime-lib": "^1.1.1"
   }
